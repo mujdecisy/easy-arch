@@ -1,6 +1,6 @@
 {
   "name": "easy-architect",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "easy architecting with mermaid and md-to-pdf",
   "main": "index.js",
   "bin": {
