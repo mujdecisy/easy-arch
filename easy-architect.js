@@ -2,7 +2,8 @@ const { mdToPdf } = require('md-to-pdf');
 const path = require('path');
 const fs = require('fs');
 const readline = require('readline');
-const marked = require('marked');
+
+let FILE_CHANGE_CAPTURED = false;
 
 async function convert(inputPath, intermediatePath, tempDir) {
     const { run } = await import("@mermaid-js/mermaid-cli");
@@ -90,8 +91,13 @@ async function exportPdf(inputPath) {
 async function watch(inputPath) {
     fs.watch(inputPath, async (eventType) => {
         if (eventType === 'change') {
+            if (FILE_CHANGE_CAPTURED) {
+                return;
+            }
+            FILE_CHANGE_CAPTURED = true;
             console.log(`${inputPath} has been changed. Exporting to HTML...`);
             await exportHtml(inputPath);
+            FILE_CHANGE_CAPTURED = false;
         }
     });
 }
