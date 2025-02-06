@@ -4,15 +4,15 @@
   "description": "easy architecting with mermaid and md-to-pdf",
   "main": "index.js",
   "bin": {
-    "easy-architect": "./index.js"
+    "easy-arch": "./index.js"
   },
   "scripts": {
   },
-  "author": "",
+  "author": "mujdecisy",
   "license": "MIT",
   "dependencies": {
-    "md-to-pdf": "^2.0.0",
-    "@mermaid-js/mermaid-cli": "^8.8.4",
-    "yargs": "^17.0.0"
+    "md-to-pdf": "^5.2.4",
+    "@mermaid-js/mermaid-cli": "^11.4.2",
+    "yargs": "^17.7.2"
   }
 }
