@@ -83,7 +83,30 @@ async function exportPdf(inputPath) {
 
     const cssPath = path.join(__dirname, 'template.css');
     const cssContent = fs.readFileSync(cssPath, 'utf8');
-    await mdToPdf({ path: intermediatePath }, { dest: outputPath, css: cssContent });
+    await mdToPdf({ path: intermediatePath }, {
+        dest: outputPath, css: cssContent,
+        pdf_options: {
+            displayHeaderFooter: true,
+            headerTemplate: `
+                <style>
+                    section {
+                        margin: 0 auto;
+                        font-size: 14px;
+                    }
+                </style>
+                <section>
+                    <span>${fileName}</span>
+                </section>
+            `,
+            footerTemplate: `
+                <section>
+                    <div>
+                        <span class="pageNumber"></span>
+                    </div>
+                </section>
+            `,
+        }
+    });
 
     fs.rmSync(tempDir, { recursive: true, force: true });
 }
