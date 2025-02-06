@@ -53,29 +53,21 @@ async function init() {
 
 async function exportHtml(inputPath) {
     const fileName = path.basename(inputPath, '.md');
-    const tempDir = `${fileName}_tmp`;
-    const intermediatePath = path.join(tempDir, 'test.out.md');
-    const outputPath = path.join(tempDir, `${fileName}.html`);
+    const htmlDir = `${fileName}_html`;
+    const intermediatePath = path.join(htmlDir, `${fileName}.md`);
+    const outputPath = path.join(htmlDir, `${fileName}.html`);
 
-    await convert(inputPath, intermediatePath, tempDir);
+    const cssPath = path.join(__dirname, 'template.css');
+    const cssContent = "body {width:1025px; padding: 150px 200px 200px 100px; border: 1px solid black; font-size: 100%;}" + fs.readFileSync(cssPath, 'utf8');
 
-    const markdownContent = fs.readFileSync(intermediatePath, 'utf8');
+    await convert(inputPath, intermediatePath, htmlDir);
+    fs.writeFileSync(path.join(htmlDir, '.gitignore'), '*');
 
-    const htmlContent = marked.parse(markdownContent);
-    const fullHtmlContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>${fileName}</title>
-    </head>
-    <body>
-        ${htmlContent}
-    </body>
-    </html>
-    `;
-
-    fs.writeFileSync(outputPath, fullHtmlContent);
+    await mdToPdf({ path: intermediatePath }, {
+        dest: outputPath,
+        as_html: true,
+        css: cssContent,
+    });
 
     console.log(`HTML file created successfully at ${outputPath}`);
 }
@@ -83,15 +75,26 @@ async function exportHtml(inputPath) {
 async function exportPdf(inputPath) {
     const fileName = path.basename(inputPath, '.md');
     const tempDir = `${fileName}_tmp`;
-    const intermediatePath = path.join(tempDir, 'test.out.md');
+    const intermediatePath = path.join(tempDir, `${fileName}.md`);
     const outputPath = path.join(path.dirname(inputPath), `${fileName}.pdf`);
 
     await convert(inputPath, intermediatePath, tempDir);
 
-    await mdToPdf({ path: intermediatePath }, { dest: outputPath });
+    const cssPath = path.join(__dirname, 'template.css');
+    const cssContent = fs.readFileSync(cssPath, 'utf8');
+    await mdToPdf({ path: intermediatePath }, { dest: outputPath, css: cssContent });
 
     fs.rmSync(tempDir, { recursive: true, force: true });
 }
 
-module.exports = { exportPdf, init, exportHtml };
+async function watch(inputPath) {
+    fs.watch(inputPath, async (eventType) => {
+        if (eventType === 'change') {
+            console.log(`${inputPath} has been changed. Exporting to HTML...`);
+            await exportHtml(inputPath);
+        }
+    });
+}
+
+module.exports = { exportPdf, init, exportHtml, watch };
 
