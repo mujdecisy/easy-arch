@@ -1,5 +1,5 @@
 # !name! !version!
-> [arc42 documentation standard](https://arc42.org/)
+> [arc42](https://arc42.org/overview)
 
 | Versions | Date | Authors |
 | --- | --- | --- |
@@ -51,3 +51,6 @@ Important domain and technical terms that stakeholders use when discussing the s
 | --- | --- |
 | Architecture | A set of structures needed to reason about the system |
 | Stakeholder | A person or group of people who have an interest in the system |
+
+## 13. References
+List of all offline documents referenced in the ADR.

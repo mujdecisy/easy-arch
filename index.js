@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
-const { init, exportPdf, exportHtml, watch } = require('./easy-architect');
+const { initArch, exportPdf, exportHtml, watch, initADR } = require('./easy-architect');
 const yargs = require('yargs');
 const { hideBin } = require('yargs/helpers');
 const path = require('path');
 const packageJson = require('./package.json');
 
 yargs(hideBin(process.argv))
-  .command('init', 'Initialize a new Markdown file', {}, async () => {
-    await init();
+  .command('initArch', 'Initialize a new arch document', {}, async () => {
+    await initArch();
   })
   .command('exportPDF', 'Export markdown as PDF', {
     input: {
@@ -57,6 +57,9 @@ yargs(hideBin(process.argv))
     }
   }, async (argv) => {
     await watch(argv.input);
+  })
+  .command('initADR', 'Initialize a new decision record', {}, async () => {
+    await initADR();
   })
   .command('version', 'Show the version of the application', {}, () => {
     console.log(`Version: ${packageJson.version}`);

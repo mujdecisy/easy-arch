@@ -30,13 +30,13 @@ function askQuestion(query) {
     }));
 }
 
-async function init() {
+async function initArch() {
     const name = await askQuestion("Enter project name: ");
     const version = await askQuestion("Enter project version: ");
     const author = await askQuestion("Enter author name: ");
     const today = new Date().toISOString().split('T')[0];
 
-    const templatePath = path.join(__dirname, 'template.md');
+    const templatePath = path.join(__dirname, 'template-arch.md');
     const templateContent = fs.readFileSync(templatePath, 'utf8');
 
     const updatedContent = templateContent
@@ -46,6 +46,22 @@ async function init() {
         .replace(/!date!/g, today);
 
     const outputPath = `${name}--v${version}.md`;
+
+    fs.writeFileSync(outputPath, updatedContent);
+
+    console.log(`Markdown file created successfully at ${outputPath}`);
+}
+
+async function initADR() {
+    const today = new Date().toISOString().split('T')[0];
+
+    const templatePath = path.join(__dirname, 'template-decision.md');
+    const templateContent = fs.readFileSync(templatePath, 'utf8');
+
+    const updatedContent = templateContent
+        .replace(/!date!/g, today);
+
+    const outputPath = `adr--${today}.md`;
 
     fs.writeFileSync(outputPath, updatedContent);
 
@@ -115,6 +131,7 @@ async function watch(inputPath) {
     fs.watch(inputPath, async (eventType) => {
         if (eventType === 'change') {
             if (FILE_CHANGE_CAPTURED) {
+                console.log('File change already captured. Skipping...');
                 return;
             }
             FILE_CHANGE_CAPTURED = true;
@@ -125,5 +142,5 @@ async function watch(inputPath) {
     });
 }
 
-module.exports = { exportPdf, init, exportHtml, watch };
+module.exports = { exportPdf, initArch, exportHtml, watch, initADR };
 
