@@ -11,6 +11,12 @@ async function convert(inputPath, intermediatePath, tempDir) {
         fs.rmSync(tempDir, { recursive: true, force: true });
     }
     fs.mkdirSync(tempDir);
+
+    // Add "../" prefix to local links
+    let content = fs.readFileSync(inputPath, 'utf8');
+    content = content.replace(/\]\((?!http)([^)]+)\)/g, '](../$1)');
+    fs.writeFileSync(inputPath, content);
+
     await run(
         inputPath, intermediatePath, // {optional options},
     );
