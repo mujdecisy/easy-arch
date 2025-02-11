@@ -99,7 +99,7 @@ async function exportPdf(inputPath) {
     const fileName = path.basename(inputPath, '.md');
     const tempDir = `${fileName}_tmp`;
     const intermediatePath = path.join(tempDir, `${fileName}.md`);
-    const outputPath = path.join(path.dirname(inputPath), `${fileName}.pdf`);
+    const outputPath = path.join(path.dirname(intermediatePath), `${fileName}.pdf`);
 
     await convert(inputPath, intermediatePath, tempDir);
 
@@ -130,6 +130,7 @@ async function exportPdf(inputPath) {
         }
     });
 
+    fs.copyFileSync(outputPath, `${fileName}.pdf`);
     fs.rmSync(tempDir, { recursive: true, force: true });
 }
 
