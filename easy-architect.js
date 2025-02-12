@@ -3,7 +3,6 @@ const path = require('path');
 const fs = require('fs');
 const readline = require('readline');
 
-let FILE_CHANGE_CAPTURED = false;
 
 async function convert(inputPath, intermediatePath, tempDir) {
     const { run } = await import("@mermaid-js/mermaid-cli");
@@ -15,13 +14,40 @@ async function convert(inputPath, intermediatePath, tempDir) {
     // Add "../" prefix to local links
     let content = fs.readFileSync(inputPath, 'utf8');
     content = content.replace(/\]\((?!http)([^)]+)\)/g, '](../$1)');
-    fs.writeFileSync(inputPath, content);
+    
+    // Update content with absolute paths
+    content = content.replace(/\]\(\.\.\/([^)]+)\)/g, (_, relativePath) => {
+        const absolutePath = path.join(process.cwd(), relativePath);
+        return `](${absolutePath})`;
+    });
+
+    // Create external folder
+    const externalDir = path.join(tempDir, 'external');
+    if (!fs.existsSync(externalDir)) {
+        fs.mkdirSync(externalDir);
+    }
+
+    // Copy external files to the external folder
+    content = content.replace(/\]\(([^)]+)\)/g, (_, absolutePath) => {
+        const fileName = path.basename(absolutePath);
+        const destPath = path.join(externalDir, fileName);
+        fs.copyFileSync(absolutePath, destPath);
+        return `](external/${fileName})`;
+    });
+
+    fs.writeFileSync(intermediatePath, content);
 
     await run(
-        inputPath, intermediatePath, // {optional options},
+        intermediatePath, intermediatePath, // {optional options},
     );
 
     console.log(`Converted MD created successfully at ${intermediatePath}`);
+}
+
+async function getLatestSavedTimestamp(inputPath) {
+    const fileStat = fs.statSync(inputPath);
+    const fileTime = fileStat.mtimeMs;
+    return Math.floor(fileTime / 1000).toString();
 }
 
 function askQuestion(query) {
@@ -99,6 +125,7 @@ async function exportPdf(inputPath) {
     const fileName = path.basename(inputPath, '.md');
     const tempDir = `${fileName}_tmp`;
     const intermediatePath = path.join(tempDir, `${fileName}.md`);
+    const latestTimestampTag = await getLatestSavedTimestamp(inputPath);
     const outputPath = path.join(path.dirname(intermediatePath), `${fileName}.pdf`);
 
     await convert(inputPath, intermediatePath, tempDir);
@@ -130,21 +157,22 @@ async function exportPdf(inputPath) {
         }
     });
 
-    fs.copyFileSync(outputPath, `${fileName}.pdf`);
+    fs.copyFileSync(outputPath, `${fileName}-${latestTimestampTag}.pdf`);
     fs.rmSync(tempDir, { recursive: true, force: true });
 }
 
 async function watch(inputPath) {
+    const LOCK_FILE = `${inputPath}.lock`;
     fs.watch(inputPath, async (eventType) => {
         if (eventType === 'change') {
-            if (FILE_CHANGE_CAPTURED) {
+            if (fs.existsSync(LOCK_FILE)) {
                 console.log('File change already captured. Skipping...');
                 return;
             }
-            FILE_CHANGE_CAPTURED = true;
+            fs.writeFileSync(LOCK_FILE, 'locked');
             console.log(`${inputPath} has been changed. Exporting to HTML...`);
             await exportHtml(inputPath);
-            FILE_CHANGE_CAPTURED = false;
+            fs.unlinkSync(LOCK_FILE);
         }
     });
 }
