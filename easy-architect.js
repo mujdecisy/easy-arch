@@ -164,10 +164,12 @@ async function exportPdf(inputPath) {
 
 async function watch(inputPath) {
     const LOCK_FILE = `${inputPath}.lock`;
+    if (fs.existsSync(LOCK_FILE)) {
+        fs.unlinkSync(LOCK_FILE);
+    }
     fs.watch(inputPath, async (eventType) => {
         if (eventType === 'change') {
             if (fs.existsSync(LOCK_FILE)) {
-                console.log('File change already captured. Skipping...');
                 return;
             }
             fs.writeFileSync(LOCK_FILE, 'locked');
