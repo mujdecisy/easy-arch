@@ -173,8 +173,11 @@ async function watch(inputPath) {
                 return;
             }
             fs.writeFileSync(LOCK_FILE, 'locked');
-            console.log(`${inputPath} has been changed. Exporting to HTML...`);
-            await exportHtml(inputPath);
+            try {
+                await exportHtml(inputPath);
+            } catch (error) {
+                console.log(`Error exporting to HTML: ${error.message}`);
+            }
             fs.unlinkSync(LOCK_FILE);
         }
     });
