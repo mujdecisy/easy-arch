@@ -13,7 +13,7 @@ async function convert(inputPath, intermediatePath, tempDir) {
 
     // Add "../" prefix to local links
     let content = fs.readFileSync(inputPath, 'utf8');
-    content = content.replace(/\]\((?!http)([^)]+)\)/g, '](../$1)');
+    content = content.replace(/\]\((?!http|#)([^)]+)\)/g, '](../$1)');
     
     // Update content with absolute paths
     content = content.replace(/\]\(\.\.\/([^)]+)\)/g, (_, relativePath) => {
