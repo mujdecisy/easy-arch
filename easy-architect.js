@@ -28,7 +28,7 @@ async function convert(inputPath, intermediatePath, tempDir) {
     }
 
     // Copy external files to the external folder
-    content = content.replace(/\]\((?!http)([^)]+)\)/g, (_, relativePath) => {
+    content = content.replace(/\]\((?!http|#)([^)]+)\)/g, (_, relativePath) => {
         const absolutePath = path.join(process.cwd(), relativePath);
         const fileName = path.basename(absolutePath);
         const destPath = path.join(externalDir, fileName);
