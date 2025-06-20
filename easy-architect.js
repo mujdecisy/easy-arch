@@ -11,30 +11,24 @@ async function convert(inputPath, intermediatePath, tempDir) {
     }
     fs.mkdirSync(tempDir);
 
-    // Add "../" prefix to local links
     let content = fs.readFileSync(inputPath, 'utf8');
-    content = content.replace(/\]\((?!http|#)([^)]+)\)/g, '](../$1)');
-    
-    // Update content with absolute paths
-    content = content.replace(/\]\(\.\.\/([^)]+)\)/g, (_, relativePath) => {
-        const absolutePath = path.join(process.cwd(), relativePath);
-        return `](${absolutePath})`;
-    });
+    let file_paths = content.match( /\!\[.+]\((?!http|#)([^)]+)\)/g ) || [];
+    file_paths = file_paths.map(x=>x.split("](")[1].replace(")", ""))
 
-    // Create external folder
-    const externalDir = path.join(tempDir, 'external');
-    if (!fs.existsSync(externalDir)) {
-        fs.mkdirSync(externalDir);
+    // Copy files to external folder
+    for (const file_path of file_paths) {
+        const absolutePath = path.resolve(path.dirname(inputPath), file_path);
+        if (fs.existsSync(absolutePath)) {
+            const destDir = path.dirname(path.join(tempDir, file_path));
+            if (!fs.existsSync(destDir)) {
+                fs.mkdirSync(destDir, { recursive: true });
+            }
+            const destPath = path.join(tempDir, file_path);
+            fs.copyFileSync(absolutePath, destPath);
+        } else {
+            console.warn(`File not found: ${absolutePath}`);
+        }
     }
-
-    // Copy external files to the external folder
-    content = content.replace(/\]\((?!http|#)([^)]+)\)/g, (_, relativePath) => {
-        const absolutePath = path.join(process.cwd(), relativePath);
-        const fileName = path.basename(absolutePath);
-        const destPath = path.join(externalDir, fileName);
-        fs.copyFileSync(absolutePath, destPath);
-        return `](external/${fileName})`;
-    });
 
     fs.writeFileSync(intermediatePath, content);
 
