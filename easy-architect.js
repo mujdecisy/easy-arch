@@ -116,12 +116,22 @@ async function exportHtml(inputPath) {
     console.log(`HTML file created successfully at ${outputPath}`);
 }
 
-async function exportPdf(inputPath) {
+async function exportPdf(inputPath, headerTmpPath, footerTmpPath) {
     const fileName = path.basename(inputPath, '.md');
     const tempDir = `${fileName}_tmp`;
     const intermediatePath = path.join(tempDir, `${fileName}.md`);
     const latestTimestampTag = await getLatestSavedTimestamp(inputPath);
     const outputPath = path.join(path.dirname(intermediatePath), `${fileName}.pdf`);
+
+    let headerTemplate = '';
+    if (headerTmpPath && fs.existsSync(headerTmpPath)) {
+        headerTemplate = fs.readFileSync(headerTmpPath, 'utf8');
+    }
+
+    let footerTemplate = '';
+    if (footerTmpPath && fs.existsSync(footerTmpPath)) {
+        footerTemplate = fs.readFileSync(footerTmpPath, 'utf8');
+    }
 
     await convert(inputPath, intermediatePath, tempDir);
 
@@ -131,19 +141,25 @@ async function exportPdf(inputPath) {
         dest: outputPath, css: cssContent,
         pdf_options: {
             displayHeaderFooter: true,
-            headerTemplate: `
+            headerTemplate: headerTemplate || `
                 <style>
-                    section {
+                    #header {
                         margin: 0 auto;
                         font-size: 14px;
                     }
                 </style>
-                <section>
+                <section id="header">
                     <span>${fileName}</span>
                 </section>
             `,
-            footerTemplate: `
-                <section>
+            footerTemplate: footerTemplate || `
+                <style>
+                    #footer {
+                        margin: 0 auto;
+                        font-size: 14px;
+                    }
+                </style>
+                <section id="footer">
                     <div>
                         <span class="pageNumber"></span>
                     </div>

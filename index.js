@@ -22,9 +22,31 @@ yargs(hideBin(process.argv))
         }
         return arg;
       }
+    },
+    headerTemplate: {
+      alias: 'ht',
+      type: 'string',
+      description: 'Path to custom header template HTML file',
+      coerce: (arg) => {
+        if (arg && path.extname(arg) !== '.html') {
+          throw new Error('Header template must be an HTML file');
+        }
+        return arg;
+      }
+    },
+    footerTemplate: {
+      alias: 'ft',
+      type: 'string',
+      description: 'Path to custom footer template HTML file',
+      coerce: (arg) => {
+        if (arg && path.extname(arg) !== '.html') {
+          throw new Error('Footer template must be an HTML file');
+        }
+        return arg;
+      }
     }
   }, async (argv) => {
-    await exportPdf(argv.input);
+    await exportPdf(argv.input, argv.headerTemplate, argv.footerTemplate);
   })
   .command('exportHTML', 'Export markdown as html', {
     input: {
